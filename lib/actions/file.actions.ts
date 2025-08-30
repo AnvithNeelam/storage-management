@@ -2,12 +2,13 @@
 
 import { createAdminClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
-import { Query, ID } from "node-appwrite";
+import { Query, ID, Models } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
 import { constructFileUrl, getFileType, parseStringify } from "../utils";
 import { cookies } from "next/headers";
 import { error } from "console";
 import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "./user.actions";
 
 const handleError = (error: unknown, message: string) => {
   console.error(message, error);
@@ -55,5 +56,40 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
   } catch (error) {
     handleError(error, "Failed to upload file");
   }
-
 }
+
+const createQueries = (currentUser: Models.Document) => {
+  const queries = [
+    Query.or([
+      Query.equal("owner", [currentUser.$id]),
+      Query.contains("users", [currentUser.email])
+    ])
+  ]
+
+  return queries;
+}
+
+export const getFiles = async () => {
+      const { databases } = await createAdminClient();
+      
+      try {
+        const currentUser = await getCurrentUser();
+
+        if(!currentUser) throw new Error("User not authenticated");
+
+        const queries = createQueries(currentUser)
+        console.log({currentUser, queries})
+
+        const files = await databases.listDocuments(
+          appwriteConfig.databaseId!,
+          appwriteConfig.filesId!,
+          queries
+        )
+
+        console.log({files})
+        return parseStringify(files)
+        
+      } catch (error) {
+        handleError(error, "Failed to retrieve files");
+      }
+    }
