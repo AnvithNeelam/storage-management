@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "cloud.appwrite.io",
+        hostname: "sfo.cloud.appwrite.io",
       },
     ],
   },

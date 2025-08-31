@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 interface Props {
   type: string;
-  extenstion: string;
+  extension: string;
   url: string;
   imageClassName?: string;
   className?: string;
